@@ -1,6 +1,8 @@
 output.md
 __pycache__
 .venv
+venv
+.promptify
 *.egg-info*
 build
 dist
