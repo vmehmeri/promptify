@@ -76,6 +76,9 @@ promptify [args]
 - `--output`: File to write the output to (Optional. Output will be automatically written to a file called `output.promptify` if clipboard copy fails)
 - `--ignore-empty`: Flag to Ignore empty files (default: False)
 - `--no-skip`: Force-include files where potential API keys are detected (default: False)
+- `--export-profile`: Save current filters and options to a named profile
+- `--profile`: Load filters and options from a saved profile
+
 
 ### Examples
 
@@ -99,6 +102,15 @@ promptify [args]
    promptify --include "*.py" --exclude "config/*" 
    ```
 
+5. Save current configuration as a profile:
+   ```
+   promptify --include "*.py" "*.js" --exclude "*test*" --export-profile my-js-py-app
+   ```
+
+6. Apply the configuration from a saved profile:
+   ```
+   promptify --profile my-js-py-config
+   ```
 
 
 ## Output
