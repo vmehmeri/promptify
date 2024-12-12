@@ -5,6 +5,7 @@ import fnmatch
 import pyperclip
 import argparse
 import re
+import yaml
 
 from tabulate import tabulate
 from token_count import TokenCount
@@ -116,6 +117,37 @@ def print_directory_tree(file_paths):
     # Print the tree
     print_tree(tree)
 
+def save_profile(profile_name, include_patterns, exclude_patterns, ignore_empty, no_skip):
+    """Save the current configuration as a profile."""
+    profile = {
+        'include': include_patterns,
+        'exclude': exclude_patterns,
+        'ignore_empty': ignore_empty,
+        'no_skip': no_skip
+    }
+    
+    filename = f"{profile_name}.promptify"
+    try:
+        with open(filename, 'w') as f:
+            yaml.dump(profile, f)
+        print(f"Profile saved to {filename}")
+    except Exception as e:
+        print(f"Failed to save profile: {str(e)}")
+
+def load_profile(profile_name):
+    """Load configuration from a profile."""
+    filename = f"{profile_name}.promptify"
+    try:
+        with open(filename, 'r') as f:
+            profile = yaml.safe_load(f)
+            print(f"Loaded profile from {filename}\n")
+        return profile
+    except FileNotFoundError:
+        print(f"Profile {filename} not found")
+        return None
+    except Exception as e:
+        print(f"Failed to load profile: {str(e)}")
+        return None
 
 def main():
     parser = argparse.ArgumentParser(description="Aggregate file contents based on include and exclude patterns.")
@@ -128,11 +160,31 @@ def main():
                         help="Ignore empty files (default: False)")
     parser.add_argument('--no-skip', action='store_true',
                         help="Will force the inclusion of files that are skipped due to API keys being found")
+    parser.add_argument('--export-profile', type=str, metavar='PROFILE_NAME',
+                        help="Save current filters and options to a profile")
+    parser.add_argument('--profile', type=str, metavar='PROFILE_NAME',
+                        help="Load filters and options from a profile")
 
     args = parser.parse_args()
 
+    # Handle profile loading
+    if args.profile:
+        profile = load_profile(args.profile)
+        if profile:
+            args.include = profile['include']
+            args.exclude = profile['exclude']
+            args.ignore_empty = profile['ignore_empty']
+            args.no_skip = profile['no_skip']
+
+        else:
+            return -1
+
     output, incl_files, skipped_files = aggregate_file_contents(args.include, args.exclude, args.ignore_empty, args.no_skip)
     metadata = get_metadata(output)
+
+    # Handle profile export
+    if args.export_profile:
+        save_profile(args.export_profile, args.include, args.exclude, args.ignore_empty, args.no_skip)
 
     print(tabulate(metadata))
     print("Files included:")
